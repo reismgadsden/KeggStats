@@ -1,5 +1,6 @@
 import json
 
+
 def trans_break(input_file, output_file):
     seperator = ""
 
@@ -21,27 +22,35 @@ def trans_break(input_file, output_file):
         i = 0
         target = [count_dict]
         while i < len(taxonomy):
-            tax = taxonomy[i].strip("\n")
+            tax = taxonomy[i].strip("\n").strip()
+            if ":::" in tax:
+                i += 1
+                continue
             if tax not in target[0].keys():
                 target[0][tax] = dict()
                 target = [target[0][tax]]
                 target[0]["count"] = 1
-                target[0]["percent"] = 0
-                target[0]["percent_total"] = (1 / total_count) * 100
+                target[0]["percent"] = (1 / total_count) * 100
                 if i != len(taxonomy) - 1:
                     target[0]["Sub"] = dict()
                     target = [target[0]["Sub"]]
                 elif i == len(taxonomy) - 1:
                     target[0]["Transcripts"] = []
                     target[0]["Transcripts"].append(trans_id)
+                    target[0]["Transcripts"].sort()
             else:
                 target = [target[0][tax]]
                 target[0]["count"] += 1
-                target[0]["percent_total"] += (1 / total_count) * 100
+                target[0]["percent"] += (1 / total_count) * 100
                 if i != len(taxonomy) - 1:
+                    # if "Sub" not in target[0]:
+                    #     target[0]["Sub"] = dict()
                     target = [target[0]["Sub"]]
                 elif i == len(taxonomy) - 1:
+                    # if "Transcripts" not in target[0]:
+                    #     target[0]["Transcripts"] = []
                     target[0]["Transcripts"].append(trans_id)
+                    target[0]["Transcripts"].sort()
             i += 1
 
     with open(output_file, "w") as outfile:
