@@ -52,7 +52,7 @@ def search_pathways(argv):
 
 
 def build_pathways(input_file, output_file, search_term):
-    print("input file = " + input_file + "; output file = " + output_file + "; search term =\"" + search_term + "\"")
+
     with open(input_file) as json_file:
         data = json.load(json_file)
 
@@ -68,6 +68,15 @@ def build_pathways(input_file, output_file, search_term):
         json.dump(results, outfile, indent=2)
     outfile.close()
     json_file.close()
+
+    print("Search Term: " + search_term)
+    print("Total Transcripts: " + str(results[search_term]["count"]))
+    print("Percent of Total Transcripts: " + str(results[search_term]["percent"]) + "%")
+    pathways = ""
+    for p in results[search_term]["results"]:
+        pathways += ("\t" + p + "\n")
+    print("Pathways taken:\n" + pathways[:-1])
+    print("***To see associated transcripts view \"" + output_file + "\", your output file.***")
 
 
 def search_json(results, kegg_json, term, path=""):
