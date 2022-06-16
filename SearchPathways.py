@@ -1,6 +1,7 @@
 import sys
 import getopt
 import re
+import json
 
 
 def search_pathways(argv):
@@ -47,12 +48,54 @@ def search_pathways(argv):
                 print("A search term must be provided")
                 sys.exit(2)
 
-    build_pathway(input_file=input_file, output_file=output_file, search_term=search_term)
+    build_pathways(input_file=input_file, output_file=output_file, search_term=search_term)
 
 
-def build_pathway(input_file, output_file, search_term):
+def build_pathways(input_file, output_file, search_term):
     print("input file = " + input_file + "; output file = " + output_file + "; search term =\"" + search_term + "\"")
+    with open(input_file) as json_file:
+        data = json.load(json_file)
 
+    results = dict()
+    results[search_term] = dict()
+    results[search_term]["count"] = 0
+    results[search_term]["percent"] = 0
+    results[search_term]["results"] = dict()
+
+    search_json(results=[results[search_term]], kegg_json=data, term=search_term)
+
+    with open(output_file, "w") as outfile:
+        json.dump(results, outfile, indent=2)
+    outfile.close()
+    json_file.close()
+
+
+def search_json(results, kegg_json, term, path=""):
+    for k in kegg_json:
+        if term.lower() in k.lower() or term.lower() == k.lower():
+            results[0]["count"] += kegg_json[k]["count"]
+            results[0]["percent"] += kegg_json[k]["percent"]
+            if "Sub" in kegg_json[k]:
+                transcripts = [[]]
+                kegg_json[k]["Transcripts"] = get_nested_transcripts(kegg_json[k], transcripts)[0]
+                del kegg_json[k]["Sub"]
+            results[0]["results"][path[4:] + " -> " + k] = kegg_json[k]
+        else:
+            if "Sub" in kegg_json[k]:
+                search_json([results[0]], kegg_json[k]["Sub"], term=term, path=(path + " -> " + k))
+            else:
+                continue
+
+
+def get_nested_transcripts(kegg_json, transcripts):
+    for k in kegg_json:
+        if "Sub" in kegg_json[k]:
+            transcripts[0] = transcripts[0] + get_nested_transcripts(kegg_json[k]["Sub"], transcripts)
+        else:
+            hits_trans = []
+            for t in kegg_json[k]["Transcripts"]:
+                hits_trans.append(t)
+            return hits_trans
 
 
 if __name__ == "__main__":
