@@ -86,7 +86,8 @@ def search_json(results, kegg_json, term, path=""):
             results[0]["percent"] += kegg_json[k]["percent"]
             if "Sub" in kegg_json[k]:
                 transcripts = [[]]
-                kegg_json[k]["Transcripts"] = get_nested_transcripts(kegg_json[k], transcripts)[0]
+                get_nested_transcripts(kegg_json[k]["Sub"], transcripts)
+                kegg_json[k]["Transcripts"] = transcripts[0]
                 del kegg_json[k]["Sub"]
             results[0]["results"][path[4:] + " -> " + k] = kegg_json[k]
         else:
@@ -99,12 +100,11 @@ def search_json(results, kegg_json, term, path=""):
 def get_nested_transcripts(kegg_json, transcripts):
     for k in kegg_json:
         if "Sub" in kegg_json[k]:
-            transcripts[0] = transcripts[0] + get_nested_transcripts(kegg_json[k]["Sub"], transcripts)
+            get_nested_transcripts(kegg_json[k]["Sub"], transcripts)
         else:
             hits_trans = []
             for t in kegg_json[k]["Transcripts"]:
-                hits_trans.append(t)
-            return hits_trans
+                transcripts[0].append(t)
 
 
 if __name__ == "__main__":
